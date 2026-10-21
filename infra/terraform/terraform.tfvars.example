@@ -1,0 +1,28 @@
+# cp terraform.tfvars.example terraform.tfvars で写してから埋める (terraform.tfvars は .gitignore 済み)。
+# ⚠ ここには secret の値を書かない。値は Secret Manager に gcloud で入れる (README.md)。
+
+gcp_project_id        = "CHANGE-ME-gcp-project"
+region                = "asia-northeast1"
+cloudflare_account_id = "CHANGE-ME-cloudflare-account"
+
+# Worker の custom domain。空なら作らず、workers.dev の URL で公開する。
+# 設定するときは、そのドメインを含むゾーンの ID も書く。
+domain             = ""
+cloudflare_zone_id = ""
+
+# turso CLI で作った DB の URL (libsql://<db>-<org>.<location>.turso.io)。
+turso_url = "libsql://CHANGE-ME"
+
+# push した image の digest。初回 (器だけ作る段階) は空でよい。
+# 例: asia-northeast1-docker.pkg.dev/<project>/apps/ai@sha256:...
+ai_image = ""
+
+# 以下は既定値のままでよい。
+# project_name          = "spec-to-order-sheet"   # apps/web/wrangler.jsonc の名前と揃える
+# ai_default_model      = "openai/gpt-5-mini"
+# ai_request_timeout_ms = 900000
+# ai_min_instances      = 0
+# ai_max_instances      = 3
+# deletion_protection   = false
+# secret_readers        = ["user:you@your-domain.test"]
+# d1_location_hint      = "apac"

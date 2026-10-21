@@ -1,0 +1,66 @@
+# `make dev` — web / ai / gateway をまとめて動かす (process-compose)。
+#
+# ⚠ port とパスはここに書かない。Makefile の `make dev` が env で渡し、
+#   process-compose が子プロセスへ継がせる。
+# ⚠ **Docker は使わない。** 3 つとも Node で動く。
+# ⚠ readiness_probe は http_get ではなく exec にする。http_get は YAML にリテラルの
+#   port を書く必要があり、process-compose の ${VAR} 展開は版によって差があるため。
+#   exec はシェル経由なので $PORT_AI が実行時に展開される。
+# ⚠ depends_on は process_healthy ではなく process_started にする。ai が落ちても
+#   gateway と web は上げたい (欲しいのは gateway の 502 で、止まった dev スタックではない)。
+version: "0.5"
+
+log_location: .local/logs/process-compose.log
+
+processes:
+  ai:
+    # mastra dev --env .env。port は apps/ai/.env の PORT。
+    command: pnpm --dir apps/ai dev
+    availability:
+      restart: on_failure
+      backoff_seconds: 2
+      max_restarts: 5
+    readiness_probe:
+      # /health は Mastra 本体が持っているパス。
+      exec:
+        command: curl -sf -o /dev/null http://127.0.0.1:$PORT_AI/health
+      initial_delay_seconds: 5
+      period_seconds: 2
+      failure_threshold: 60
+
+  gateway:
+    # Cloud Run IAM と Google の token endpoint の代わり。
+    # ⚠ PORT / HOST は **この command の中だけ** で渡す。process-compose は環境を全プロセスへ
+    #   継がせるので、Makefile で export すると ai の .env の PORT を上書きしてしまう
+    #   (mastra dev が gateway と同じ port で起動する)。他の設定は Makefile が渡す。
+    command: PORT=$PORT_GATEWAY HOST=127.0.0.1 pnpm --dir infra/local/gcp-emulator start
+    depends_on:
+      ai:
+        condition: process_started
+    availability:
+      restart: on_failure
+      backoff_seconds: 2
+      max_restarts: 5
+    readiness_probe:
+      exec:
+        command: curl -sf -o /dev/null http://127.0.0.1:$PORT_GATEWAY/__emulator/health
+      initial_delay_seconds: 2
+      period_seconds: 2
+      failure_threshold: 30
+
+  web:
+    # vite。port は apps/web/vite.config.ts が PORT_WEB から取る。
+    command: pnpm --dir apps/web dev
+    depends_on:
+      gateway:
+        condition: process_started
+    availability:
+      restart: on_failure
+      backoff_seconds: 2
+      max_restarts: 5
+    readiness_probe:
+      exec:
+        command: curl -sf -o /dev/null http://127.0.0.1:$PORT_WEB/
+      initial_delay_seconds: 3
+      period_seconds: 2
+      failure_threshold: 30

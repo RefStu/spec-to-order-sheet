@@ -1,0 +1,29 @@
+packages:
+  - apps/*
+  - packages/*
+  - infra/local/gcp-emulator
+
+# ⚠ pnpm 11 は依存のビルドスクリプトを既定で実行しない。必要なものだけ許可する。
+#   false は「実行しない」と明示したもの (未判断のままだと install が失敗する)。
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+  # postinstall は版の表示だけで、動作に不要 (OTel 経由で入る)。
+  protobufjs: false
+  # ⚠ workerd は postinstall で実体 (Workers ランタイム) を取りに行く。
+  #   許可しないと @cloudflare/vite-plugin / wrangler が動かない。
+  workerd: true
+
+# pnpm が自動で足す「新しすぎる版」の除外。ここに載っているのは
+# 意図して最新版を入れたもの (ai と web の主要な依存)。
+minimumReleaseAgeExclude:
+  - "@ai-sdk/gateway@4.0.85"
+  - "@ai-sdk/mcp@2.0.52"
+  - "@ai-sdk/provider-utils@5.0.43"
+  - "@ai-sdk/provider@4.0.17"
+  - "@ai-sdk/react@4.0.108"
+  - "@cloudflare/vite-plugin@1.54.11"
+  - "@cloudflare/workers-types@5.20260917.1"
+  - ai@7.0.105
+  - miniflare@5.20260916.0-alpha
+  - wrangler@4.133.0

@@ -1,0 +1,1 @@
+ALTER TABLE `po_documents` ADD `deleted_at` integer;

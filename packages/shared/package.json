@@ -1,0 +1,24 @@
+{
+  "name": "@repo/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "アプリをまたぐ基盤 (env スキーマ / tsconfig / eslint 設定)。機能の知識は持たない。",
+  "exports": {
+    "./env": "./src/env/index.ts",
+    "./config/tsconfig.base.json": "./src/config/tsconfig.base.json",
+    "./config/eslint": "./src/config/eslint.js"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

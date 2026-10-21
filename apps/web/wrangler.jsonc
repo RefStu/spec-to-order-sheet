@@ -1,0 +1,83 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // ============================================================================
+  // ⚠ ここには **binding の形だけ** を書く。値 (vars / secret) は書かない。
+  //   ローカルは .dev.vars、デプロイ先は `wrangler deploy --var` と
+  //   `wrangler secret put` で入れる (infra/terraform/README.md)。
+  //
+  // ⚠ **リソースを wrangler で作らない。** D1 / R2 / Queue / Worker の器とドメインは
+  //   Terraform (infra/terraform) が作る。名前は Terraform と同じ文字列にする。
+  //
+  // ⚠⚠ deploy は `vite build` の**後**に行う。`vite build` が解決済みの設定
+  //   (main: index.js / no_bundle) を dist/ に出し、wrangler はそちらを使う。
+  //   ここの main は src/app/worker.ts なので、build せずに deploy すると
+  //   **wrangler が vite を迂回して esbuild で別物の Worker を作り直す**。
+  // ============================================================================
+  "name": "spec-to-order-sheet-web",
+  "main": "src/app/worker.ts",
+  "compatibility_date": "2026-09-01",
+
+  // React SPA。アセットに無い URL は index.html を返す (クライアント側ルーティング)。
+  // ⚠ run_worker_first を付けないと /api/* もアセット優先になる。
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist/client",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "spec-to-order-sheet",
+      // ⚠ ローカル (Miniflare) は見ないダミー。デプロイするときは
+      //   `terraform output -raw d1_database_id` の値を入れる。
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations",
+    },
+  ],
+
+  // 受け取った PDF・画像の実体。参照 (files / file_pages) は D1 に持つ。
+  // ⚠ 実体 (バケット) は Terraform が作る。wrangler で作らないこと。
+  "r2_buckets": [
+    {
+      "binding": "FILES_BUCKET",
+      "bucket_name": "spec-to-order-sheet-files",
+    },
+  ],
+
+  // ⚠ producer と consumer が同じ Worker。Miniflare ではこの形でローカルでも配送される。
+  // ⚠ Queue 名は Terraform の queue_name と apps/web/src/features/ai-review/queues/consumer.ts の
+  //   consumer.queue と同じ文字列にする。ずれるとメッセージが配送されない。
+  "queues": {
+    "producers": [{ "binding": "JOBS_QUEUE", "queue": "spec-to-order-sheet-jobs" }],
+    "consumers": [
+      {
+        "queue": "spec-to-order-sheet-jobs",
+        "max_batch_size": 1,
+        "max_retries": 2,
+        "dead_letter_queue": "spec-to-order-sheet-jobs-dlq",
+      },
+    ],
+  },
+
+  // 自分自身への service binding (RPC)。取り込みの consumer が案件を書き戻すのに使う。
+  //
+  // ⚠⚠ **なぜ HTTP ではないのか。** 取引先と製造番号が分かるのはキューの consumer の中で、
+  //   そこには利用者のリクエストが無い (絶対 URL も Authorization も無い)。自分の /api/cases を
+  //   HTTP で叩くと authMiddleware に当たるので、パイプライン用の資格情報を別に持つしかなくなる。
+  //   **RPC は fetch ハンドラを通らない**ので middleware も通らず、誰が呼べるかはこの宣言だけで
+  //   決まる。秘密が 1 つも要らない。
+  // ⚠ `service` は **この Worker 自身の名前** (上の name と同じ)。ずれると起動時に
+  //   「no such named entrypoint」で落ちる。
+  // ⚠ `entrypoint` は apps/web/src/app/entrypoints.gen.ts が export するクラス名と同じにする。
+  "services": [
+    {
+      "binding": "CASES",
+      "service": "spec-to-order-sheet-web",
+      "entrypoint": "CasesEntrypoint",
+    },
+  ],
+
+  "observability": { "enabled": true },
+}

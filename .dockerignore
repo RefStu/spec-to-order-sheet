@@ -1,0 +1,17 @@
+# ⚠ **secret と巨大なものを image に入れない。**
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+*.pem
+
+node_modules
+**/node_modules
+**/dist
+**/.mastra
+**/.wrangler
+.direnv
+.local
+.git
+infra/terraform/**/.terraform
+**/*.tsbuildinfo

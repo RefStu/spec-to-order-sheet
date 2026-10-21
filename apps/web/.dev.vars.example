@@ -1,0 +1,17 @@
+# apps/web (Cloudflare Worker) のローカル用の環境変数。
+#   cp apps/web/.dev.vars.example apps/web/.dev.vars
+# ⚠ 値は単一引用符で囲む。wrangler の dotenv は二重引用符の中の \" を戻さないので、
+#   JSON (AI_INVOKER_SA_KEY) を二重引用符で書くと Worker の JSON.parse が落ちる。
+# 検査の正は packages/shared/src/env/web.ts (zod)。
+
+# ai への入口。ローカルでは gcp-emulator (Cloud Run IAM の代わり) を指す。
+AI_BASE_URL='http://127.0.0.1:4010'
+GOOGLE_TOKEN_URL='http://127.0.0.1:4010/token'
+
+# invoker SA の鍵 (JSON) の AI_INVOKER_SA_KEY は、`make keys >> apps/web/.dev.vars` で末尾に足す。
+
+# ⚠ GIP_PROJECT_ID は空のままにする。空のときだけ AUTH_DEV_BYPASS の代わりのサインインが効く
+#   (Google Identity Platform を使わずに、メールアドレスだけで入れる)。
+GIP_PROJECT_ID=''
+GIP_AUTH_DOMAIN=''
+AUTH_DEV_BYPASS='1'

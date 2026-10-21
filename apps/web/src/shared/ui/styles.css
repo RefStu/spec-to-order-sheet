@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/*
+ * 配色のトークン。shared/ui の部品はこれだけを参照する。
+ * ⚠ 機能ごとの色をここに足さない (shared は機能の知識を持たない)。
+ */
+@theme {
+  /*
+   * ⚠ ブランドカラーは**紺**。サイドバーのベタ塗りと、AI が埋めた欄の淡い塗りに使う。
+   */
+  --color-surface: oklch(100% 0 0);
+  --color-surface-muted: oklch(97% 0.005 250);
+  --color-border: oklch(90% 0.008 250);
+  --color-ink: oklch(25% 0.02 250);
+  --color-ink-muted: oklch(52% 0.02 250);
+  --color-brand: oklch(34.6% 0.074 256);
+  --color-brand-soft: oklch(45.9% 0.093 252);
+  --color-brand-strong: oklch(26.2% 0.058 255);
+  --color-brand-ink: oklch(99% 0 0);
+  --color-danger: oklch(58% 0.19 25);
+}
+
+/*
+ * ⚠⚠ **ダークモードは持たない。**
+ *   配色はベース白・紺。しかも ORDER SHEET の塗り分け
+ *   (AI が埋めた欄 / 確信度が低い欄 / 人の欄 / 未入力) は**白地を前提に濃淡を決めている**ので、
+ *   開発機の設定で色が変わると**塗り分けを目で確かめられない**。
+ *   足すなら `prefers-color-scheme` ではなく手動の切り替えにして、
+ *   塗り分けを両方の地で確かめること。
+ */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
+
+/*
+ * ⚠⚠ **`<dialog>` を中央に戻す。**
+ *   Tailwind の preflight が `*, ::backdrop { margin: 0 }` を当てるので、
+ *   ブラウザ既定の `dialog { margin: auto }` が消え、**モーダルが左上に寄る**。
+ *   個々のダイアログに `m-auto` を書くと、新しいダイアログを足すたびに忘れる。
+ *   ⚠ 当てるのは `:modal` (= `showModal()` で開いたもの) だけ。
+ *     `open` 属性だけで置くインラインの dialog は流れの中に置きたいので触らない。
+ */
+@layer base {
+  dialog:modal {
+    margin: auto;
+  }
+}

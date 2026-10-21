@@ -1,0 +1,6 @@
+# 実際の値を入れた tfvars はコミットしない (雛形は terraform.tfvars.example)。
+*.tfvars
+!*.tfvars.example
+.terraform/
+*.tfstate
+*.tfstate.*

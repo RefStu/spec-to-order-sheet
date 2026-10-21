@@ -1,0 +1,35 @@
+{
+  "name": "@repo/ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mastra (Cloud Run)。features/* を mastra/registry.gen.ts 経由で登録する。",
+  "exports": {
+    "./contracts/*": "./src/features/*/contract.ts"
+  },
+  "scripts": {
+    "dev": "mastra dev --env .env",
+    "build": "mastra build",
+    "start": "node .mastra/output/index.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mastra/ai-sdk": "^1.10.3",
+    "@mastra/core": "^1.67.0",
+    "@mastra/langfuse": "^1.5.7",
+    "@mastra/libsql": "^1.23.0",
+    "@mastra/observability": "1.17.8",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/sdk-trace-base": "^2.11.0",
+    "@repo/shared": "workspace:*",
+    "jpeg-js": "^0.4.4",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "mastra": "^1.30.0",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

@@ -1,0 +1,2 @@
+ALTER TABLE `revision_requests` ADD `purchase_order_line_id` text;--> statement-breakpoint
+CREATE INDEX `revision_requests_purchase_order_line_id_idx` ON `revision_requests` (`purchase_order_line_id`);

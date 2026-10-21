@@ -1,0 +1,1 @@
+ALTER TABLE `revision_request_specs` ADD `mold_no` text;
